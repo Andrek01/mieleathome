@@ -160,7 +160,14 @@ item_structs:
                 cache: 'on'
             signalDoor:
                 type: bool
-                cache: 'on'                                
+                cache: 'on' 
+            dryingStep:
+                value_localized:
+                    type: str
+                    cache: 'on'             
+                value_raw:
+                    type: num
+                    cache: 'on'                                            
             elapsedTime:
                 type: list
                 cache: 'on'                          
