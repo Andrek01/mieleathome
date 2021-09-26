@@ -93,7 +93,7 @@ class mieleathome(SmartPlugin):
         self.ValidFrom = ''         #Time and date when (new) tokens were received
         self.ValidThrough = ''      #Time and date when tokens will expire
         self.ValidFor = 0           #Timeframe in days for validity of tokens
-        self.last_ping =""          #Time of last Ping from Event-Listener
+        self.last_ping_time = ""    #Time of last Ping from Event-Listener
         self.last_event_time  =""   #Time of last Event from Event-Listener
         self.last_event_action = {} #Last dict for event_action
         self.last_event_device = {} #Last dict for event_device
@@ -373,7 +373,7 @@ class mieleathome(SmartPlugin):
             if self.has_iattr(item.conf, 'foo_itemtag'):
                 self.logger.warning("update_item was called with item '{}' from caller '{}', source '{}' and dest '{}'".format(item,
                                                                                                                                caller, source, dest))
-            if self.has_iattr(item.conf, 'miele_command'):
+            if self.has_iattr(item.conf, 'miele_command') and item() == True:
                 deviceId = self.miele_device_by_action[item.path()]
                 myPayload = json.loads(item.conf['miele_command'])
                 self.putCommand2Device(deviceId, myPayload)
@@ -444,17 +444,17 @@ class miele_event(threading.Thread):
                             
                         if self.last_event == "ping":
                             self.last_event = ""
-                            self.mieleathome.last_ping = time.ctime(time.time())
+                            self.mieleathome.last_ping_time = time.ctime(time.time())
                             self.logger.warning("mieleathome - got Ping-Event :")
                         elif self.last_event == "devices":
                             self.logger.warning("mieleathome - got devices-Event :" + json.dumps(myPayload))
                             self.last_event = ""
-                            self.mieleathome.last_event_device = time.ctime(time.time())
+                            self.mieleathome.last_event_time = time.ctime(time.time())
                             self.mieleathome._parseAllDevices(myPayload)
                         elif self.last_event == "actions":
                             self.logger.warning("mieleathome - got actions-Event :" + json.dumps(myPayload))
                             self.last_event = ""
-                            self.mieleathome.last_event_action = time.ctime(time.time())
+                            self.mieleathome.last_event_time = time.ctime(time.time())
                             for device in myPayload:
                                 self.mieleathome._parseAction4Device(myPayload[device], device)
 
