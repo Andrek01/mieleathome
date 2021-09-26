@@ -76,7 +76,6 @@ class WebInterface(SmartPluginWebIf):
                            items=sorted(self.items.return_items(), key=lambda k: str.lower(k['_path'])),
                            item_count=0)
 
-
     @cherrypy.expose
     def get_data_html(self, dataSet=None):
         """

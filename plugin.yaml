@@ -69,7 +69,7 @@ item_attributes:
             de: 'Die DeviceId der Miele-cloud'
             en: 'deviceId of the Miele-cloud'
     miele_command:
-        type: dict
+        type: str
         mandatory: False
         description:
             de: 'Eine interne Funktion des Miele@Home-Plugins'
@@ -195,14 +195,150 @@ item_structs:
             batteryLevel:
                 type: num
                 cache: 'on'
-                
+
+
+        actions:
+            processAction:
+                type: list
+                cache: 'on'
+            light:
+                type: list
+                cache: 'on'            
+            ventilationStep:
+                type: list
+                cache: 'on'                        
+            programId:
+                type: list
+                cache: 'on'                            
+            targetTemperature:
+                type: num            
+                cache: 'on'            
+                miele_command: '{"targetTemperature": [ { "zone": "%1", "value": "%2" } ]}'
+            startTime:
+                type: list
+                cache: 'on'
+            deviceName:    
+                type: str
+                cache: 'on'
+            powerOn:
+                type: bool
+                cache: 'on'            
+            powerOff:
+                type: bool
+                cache: 'on'            
+            modes:
+                type: list             
+                cache: 'on'                                               
+            
                     
         visu:
-            charging_time:
-                type: num
-                visu_acl: rw
-                cache: 'on'
-                database: 'yes'                
+            times:
+                startTime:
+                    type: str
+                    eval_trigger: ....state.startTime
+                    eval: str("%0.2d"%sh.....state.startTime()[0])+":"+str("%0.2d"%sh.....state.startTime()[1])
+                elapsedTime:
+                    type: str
+                    eval_trigger: ....state.elapsedTime
+                    eval: str("%0.2d"%sh.....state.elapsedTime()[0])+":"+str("%0.2d"%sh.....state.elapsedTime()[1])
+                remainingTime:
+                    type: str
+                    eval_trigger: ....state.remainingTime
+                    eval: str("%0.2d"%sh.....state.remainingTime()[0])+":"+str("%0.2d"%sh.....state.remainingTime()[1])                                                    
+
+
+            allowed_actions:
+                start:
+                    type: bool
+                    visu_acl: rw
+
+                stop:
+                    type: bool
+                    visu_acl: rw
+
+                pause:
+                    type: bool
+                    visu_acl: rw                    
+
+                start_superfreezing:
+                    type: bool
+                    visu_acl: rw                    
+
+                stop_superfreezing:
+                    type: bool
+                    visu_acl: rw                    
+
+                start_supercooling:
+                    type: bool
+                    visu_acl: rw                    
+
+                stop_supercooling:
+                    type: bool
+                    visu_acl: rw                    
+
+                deviceName:
+                    type: bool
+                    visu_acl: rw                  
+
+                powerOn:
+                    type: bool
+                    visu_acl: rw
+                    eval_trigger: .....actions.powerOn
+                    eval: sh.....actions.powerOn()                                        
+                powerOff:
+                    type: bool
+                    visu_acl: rw
+                    eval_trigger: .....actions.powerOff
+                    eval: sh.....actions.powerOff()
+
+
+
+            action_buttons:
+                start:
+                    type: bool
+                    visu_acl: rw
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 1}'
+                stop:
+                    type: bool
+                    visu_acl: rw
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 2}'                                      
+                pause:
+                    type: bool
+                    visu_acl: rw                    
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 3}'
+                start_superfreezing:
+                    type: bool
+                    visu_acl: rw                    
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 4}'
+                stop_superfreezing:
+                    type: bool
+                    visu_acl: rw                    
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 5}'
+                start_supercooling:
+                    type: bool
+                    visu_acl: rw                    
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 6}'
+                stop_supercooling:
+                    type: bool
+                    visu_acl: rw                    
+                    autotimer: 1 = False
+                    miele_command: '{"processAction": 7}'                                                           
+                powerOn:
+                    type: bool
+                    visu_acl: rw
+                    miele_command: '{"powerOn":true}'
+                powerOff:
+                    type: bool
+                    visu_acl: rw
+                    miele_command: '{"powerOff":true}'
+
+
 #item_attribute_prefixes:
     # Definition of item attributes that only have a common prefix (enter 'item_attribute_prefixes: NONE' or ommit this section, if section should be empty)
     # NOTE: This section should only be used, if really nessesary (e.g. for the stateengine plugin)
