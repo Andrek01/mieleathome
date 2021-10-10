@@ -80,6 +80,12 @@ item_attributes:
         description:
             de: 'Eine interne Funktion des Miele@Home-Plugins'
             en: 'internal function of the Miele@Home-Plugin'
+    miele_parse_item:
+        type: bool
+        mandatory: False
+        description:
+            de: 'Eine interne Funktion des Miele@Home-Plugins'
+            en: 'internal function of the Miele@Home-Plugin'            
 item_structs:
     # Definition of item-structure templates for this plugin (enter 'item_structs: NONE', if section should be empty)
     child:
@@ -139,19 +145,13 @@ item_structs:
                 type: list
                 cache: 'on'          
             targetTemperature:
-                value_localized:
-                    type: num
-                    cache: 'on'             
-                unit:
-                    type: str
-                    cache: 'on'
+                type: list
+                cache: 'on'          
+                miele_parse_item: true                
             temperature:
-                value_localized:
-                    type: num
-                    cache: 'on'             
-                unit:
-                    type: str
-                    cache: 'on'                    
+                type: list
+                cache: 'on'          
+                miele_parse_item: true                
             signalInfo:
                 type: bool
                 cache: 'on'
@@ -211,14 +211,14 @@ item_structs:
                 type: list
                 cache: 'on'                            
             targetTemperature:
-                type: num            
-                cache: 'on'            
-                miele_command: '{"targetTemperature": [ { "zone": "%1", "value": "%2" } ]}'
+                type: list
+                cache: 'on'
+                miele_parse_item: true
             startTime:
                 type: list
                 cache: 'on'
             deviceName:    
-                type: str
+                type: bool
                 cache: 'on'
             powerOn:
                 type: bool
@@ -237,6 +237,8 @@ item_structs:
                     type: str
                     eval_trigger: ....state.startTime
                     eval: str("%0.2d"%sh.....state.startTime()[0])+":"+str("%0.2d"%sh.....state.startTime()[1])
+                stopTime:
+                    type: str
                 elapsedTime:
                     type: str
                     eval_trigger: ....state.elapsedTime
@@ -245,7 +247,49 @@ item_structs:
                     type: str
                     eval_trigger: ....state.remainingTime
                     eval: str("%0.2d"%sh.....state.remainingTime()[0])+":"+str("%0.2d"%sh.....state.remainingTime()[1])                                                    
-
+            values:
+                    temperatur_zone_1:
+                        target_temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                            miele_command: '{"targetTemperature": [ { "zone": 1, "value": %1 } ]}'                            
+                        temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                        unit:
+                            type: str
+                            visu_acl: rw
+                            cache: 'on'                            
+                    temperatur_zone_2:
+                        target_temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                            miele_command: '{"targetTemperature": [ { "zone": 2, "value": %1 } ]}'                            
+                        temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                        unit:
+                            type: str
+                            visu_acl: rw
+                            cache: 'on'                                                        
+                    temperatur_zone_3:
+                        target_temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                            miele_command: '{"targetTemperature": [ { "zone": 3, "value": %1 } ]}'                                                        
+                        temperature:
+                            type: num
+                            visu_acl: rw
+                            cache: 'on'
+                        unit:
+                            type: str
+                            visu_acl: rw
+                            cache: 'on'                            
 
             allowed_actions:
                 start:
@@ -283,13 +327,28 @@ item_structs:
                 powerOn:
                     type: bool
                     visu_acl: rw
-                    eval_trigger: .....actions.powerOn
+                    eval_trigger: ....actions.powerOn
                     eval: sh.....actions.powerOn()                                        
                 powerOff:
                     type: bool
                     visu_acl: rw
-                    eval_trigger: .....actions.powerOff
+                    eval_trigger: ....actions.powerOff
                     eval: sh.....actions.powerOff()
+                temp_Zone1:
+                    type: bool
+                    visu_acl: rw
+                    eval_trigger: ....visu.values.temperatur_zone_1.target_temperature
+                    eval: 1 if sh.....visu.values.temperatur_zone_1.target_temperature() != 0 else 0
+                temp_Zone2:
+                    type: bool
+                    visu_acl: rw
+                    eval_trigger: ....visu.values.temperatur_zone_2.target_temperature
+                    eval: 1 if sh.....visu.values.temperatur_zone_2.target_temperature() != 0 else 0
+                temp_Zone3:
+                    type: bool
+                    visu_acl: rw
+                    eval_trigger: ....visu.values.temperatur_zone_3.target_temperature
+                    eval: 1 if sh.....visu.values.temperatur_zone_3.target_temperature() != 0 else 0                                        
 
 
 
@@ -338,6 +397,28 @@ item_structs:
                     visu_acl: rw
                     miele_command: '{"powerOff":true}'
 
+        values:
+            temperatur_zone_1:
+                  range_index:
+                      type: list
+                      visu_acl: rw
+                  range_description:
+                      type: list
+                      visu_acl: rw
+            temperatur_zone_2:
+                  range_index:
+                      type: list
+                      visu_acl: rw
+                  range_description:
+                      type: list
+                      visu_acl: rw
+            temperatur_zone_3:
+                  range_index:
+                      type: list
+                      visu_acl: rw
+                  range_description:
+                      type: list
+                      visu_acl: rw                                                                    
 
 #item_attribute_prefixes:
     # Definition of item attributes that only have a common prefix (enter 'item_attribute_prefixes: NONE' or ommit this section, if section should be empty)
