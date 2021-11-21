@@ -59,7 +59,7 @@ function handleUpdatedData(response, dataSet = null) {
 		</tr>
 		<tr>
 			<td class="py-1"><strong>access_token</strong></td>
-			<td class="py-1">{{ p.AccesToken }}</td>
+			<td class="py-1">{{ p.AccessToken }}</td>
 			<td></td>
 			<td class="py-1"><strong>refresh_token</strong></td>
 			<td class="py-1">{{ p.RefreshToken }}</td>
@@ -131,15 +131,13 @@ function handleUpdatedData(response, dataSet = null) {
 					</tr>
 				</thead>
 				<tbody>
-				{% for item in items %}
-                    {% if p.has_iattr(item.conf, 'miele_deviceid') %}
+				{% for item in p.miele_items %}
                     <tr>
                         <td class="py-1">{{ item._path }}</td>
                         <td class="py-1">{{ item._type }}</td>
                         <td class="py-1">{{ item._value }}</td>
-                    {% endif %}
                     </tr>
-                {% endfor %}
+        {% endfor %}
 				</tbody>
 			</table>
 			</form>
@@ -165,21 +163,19 @@ function handleUpdatedData(response, dataSet = null) {
 				<thead>
 					<tr class="shng_heading">
 						<th class="py-1">{{ _('Device ID') }}</th>
+                        <th class="py-1">{{ _('linked Item') }}</th>
                         <th class="py-1">{{ _('Device Type') }}</th>
-                        <th class="py-1">{{ _('Device Name') }}</th>
                         <th class="py-1">{{ _('Model') }}</th>
 					</tr>
 				</thead>
 				<tbody>
-				{% for item in items %}
-                    {% if p.has_iattr(item.conf, 'miele_deviceid') %}
+				{% for item in p.miele_devices_raw %}
                     <tr>
-                        <td class="py-1">{{ p.get_iattr_value(item.conf, 'miele_deviceid') }}</td>
-                        <td class="py-1">Gefrierschrank</td>
-                        <td class="py-1">Gefrierschrank Vorraum</td>
-                        <td class="py-1">FN 26263 ws</td>
+                        <td class="py-1">{{ item.DeviceID }}</td>
+                        <td class="py-1">{{ p.miele_devices_by_deviceID[item.DeviceID]}}</td>
+                        <td class="py-1">{{ item.DeviceTyp }}</td>
+                        <td class="py-1">{{ item.DeviceModel }}</td>                        
                     </tr>
-                    {% endif %}
                 {% endfor %}
 				</tbody>
 			</table>

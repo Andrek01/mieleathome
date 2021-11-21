@@ -66,7 +66,7 @@ class mieleathome(SmartPlugin):
         self.sh = self.get_sh()
         self.items = Items.get_instance()
         self.auth = False
-        self.AccesToken   = ''
+        self.AccessToken   = ''
         self.RefreshToken = ''
         self.Expiration = 0
         self.all_devices = {}
@@ -74,7 +74,8 @@ class mieleathome(SmartPlugin):
         self.miele_devices_by_item = {}
         self.miele_device_by_action = {}
         self.miele_parsed_item = {}
-        # dicts for Event-Stream based informations
+        self.miele_items = []
+        self.miele_devices_raw = []
 
         
         
@@ -137,7 +138,7 @@ class mieleathome(SmartPlugin):
             self._getallDevices4Action()
             self._getMainItem4parseItem()
 
-        self.event_server = miele_event(self.logger, self.Url, self.AccesToken, self)
+        self.event_server = miele_event(self.logger, self.Url, self.AccessToken, self)
         self.event_server.name = "mieleEventListener"
         self.event_server.start()
         self.scheduler_add('poll_device', self.poll_device, cycle=self._cycle)
@@ -193,7 +194,7 @@ class mieleathome(SmartPlugin):
         try:
             if (myResult.status_code == 200):
                 myRespPayload=json.loads(myResult.content.decode())
-                self.AccesToken   = myRespPayload['access_token']
+                self.AccessToken   = myRespPayload['access_token']
                 self.RefreshToken = myRespPayload['refresh_token']
                 self.Expiration = myRespPayload['expires_in']
                 self.ValidFor = int(self.Expiration / 86400)                    #Timeframe in days for validity of tokens
@@ -207,7 +208,7 @@ class mieleathome(SmartPlugin):
     
     def _refreshToken(self):
         myHeaders = {
-                "Authorization" : "Bearer {}".format(self.AccesToken),
+                "Authorization" : "Bearer {}".format(self.AccessToken),
                 "Content-Type" : "application/x-www-form-urlencoded",
                 "accept": "application/json"
                 }
@@ -221,8 +222,8 @@ class mieleathome(SmartPlugin):
         try:    
             if (myResult.status_code == 200):
                 myRespPayload=json.loads(myResult.content.decode())
-                self.AccesToken   = myRespPayload['access_token']
-                self.event_server.access_token = self.AccesToken 
+                self.AccessToken   = myRespPayload['access_token']
+                self.event_server.access_token = self.AccessToken 
                 self.RefreshToken = myRespPayload['refresh_token']
                 self.Expiration = myRespPayload['expires_in']
                 myTokenRefresh = (self.Expiration-100)
@@ -259,7 +260,7 @@ class mieleathome(SmartPlugin):
         
     def _getalldevices(self):
         myHeaders = {
-                    "Authorization" : "Bearer {}".format(self.AccesToken)
+                    "Authorization" : "Bearer {}".format(self.AccessToken)
                     }
         
         myUrl = self.Url + "/devices?language={}".format(self.country[0:2])
@@ -272,7 +273,7 @@ class mieleathome(SmartPlugin):
                 self.logger.warning("Got all devices from Miele-Cloud - stopped parsing to Items")
             else:
                 pass
-        except err as Exception:
+        except Exception as err:
             self.all_devices = {}
             self.logger.warning("Error while getting devices from {}".format(myUrl))
     
@@ -285,9 +286,15 @@ class mieleathome(SmartPlugin):
         myDummy = json.dumps(myPayload)
         myDummy = myDummy.replace('"type"','"device_type"')
         myPayload = json.loads(myDummy)
-        
+        self.miele_devices_raw = []
         for myDevice in myPayload:
             self._parseDict2Item(myPayload[myDevice],self.miele_devices_by_deviceID[myDevice])
+            myObj = {}
+            myObj['DeviceID']           = myDevice
+            myObj['DeviceTyp']          = myPayload[myDevice]['ident']['device_type']['value_localized']
+            myObj['DeviceModel']        = myPayload[myDevice]['ident']['deviceIdentLabel']['techType']
+            
+            self.miele_devices_raw.append(myObj)
     
     def _parseDict2Item(self, my_dict,my_item_path):
         for entry in my_dict:
@@ -327,7 +334,7 @@ class mieleathome(SmartPlugin):
     
     
         myHeaders = {
-                    "Authorization" : "Bearer {}".format(self.AccesToken)
+                    "Authorization" : "Bearer {}".format(self.AccessToken)
                     }
         
         myUrl = self.Url + "/devices/{}/actions".format(deviceId)
@@ -337,13 +344,13 @@ class mieleathome(SmartPlugin):
                 myActions = json.loads(myResult.content.decode())
                 self.logger.warning("Got all actions from Miele-Cloud for {} - start parsing to Items".format(deviceId))
                 return myActions
-        except err as Exception: 
+        except Exception as err: 
             self.logger.warning("Error while getting Actions for Device :{}".format(deviceId))        
     
     def putCommand2Device(self,deviceID, myPayload):
         try:
             myHeaders = {
-                        "Authorization" : "Bearer {}".format(self.AccesToken)
+                        "Authorization" : "Bearer {}".format(self.AccessToken)
                         }
             
             myUrl = self.Url + "/devices/{}/actions".format(deviceID)
@@ -371,16 +378,22 @@ class mieleathome(SmartPlugin):
             self.logger.debug("parse item: {}".format(item))
             self.miele_devices_by_deviceID[item.conf['miele_deviceid']] = item.path()
             self.miele_devices_by_item[item.path()] = item.conf['miele_deviceid']
+            if not item in self.miele_items:
+                    self.miele_items.append(item)
             return self.update_item
         
         if self.has_iattr(item.conf, 'miele_command'):
             self.logger.debug("parse item: {}".format(item))
             self.miele_device_by_action[item.path()] = ''
+            if not item in self.miele_items:
+                    self.miele_items.append(item)
             return self.update_item
         
         if self.has_iattr(item.conf, 'miele_parse_item'):
             self.logger.debug("parse item: {}".format(item))
             self.miele_parsed_item[item.path()] = ''
+            if not item in self.miele_items:
+                    self.miele_items.append(item)
             return self.update_item    
         # todo
         # if interesting item for sending values:

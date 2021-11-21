@@ -130,9 +130,11 @@ item_structs:
                 value_localized:
                     type: str
                     cache: 'on'
+                    enforce_updates: yes                    
                 value_raw:
                     type: num
                     cache: 'on'                
+                    enforce_updates: yes                    
             programType:
                 value_localized:
                     type: str
@@ -144,9 +146,11 @@ item_structs:
             remainingTime:
                 type: list
                 cache: 'on'
+                enforce_updates: yes                
             startTime:
                 type: list
-                cache: 'on'          
+                cache: 'on'
+                enforce_updates: yes                 
             targetTemperature:
                 type: list
                 cache: 'on'          
@@ -159,22 +163,28 @@ item_structs:
             signalInfo:
                 type: bool
                 cache: 'on'
+                enforce_updates: yes                
             signalFailure:
                 type: bool
                 cache: 'on'
+                enforce_updates: yes                
             signalDoor:
                 type: bool
-                cache: 'on' 
+                cache: 'on'
+                enforce_updates: yes                
             dryingStep:
                 value_localized:
                     type: str
-                    cache: 'on'             
+                    cache: 'on'   
+                    enforce_updates: yes                              
                 value_raw:
                     type: num
                     cache: 'on'                                            
+                    enforce_updates: yes                    
             elapsedTime:
                 type: list
                 cache: 'on'                          
+                enforce_updates: yes                
             ecoFeedback:
                 currentWaterConsumption:
                     unit:
