@@ -110,7 +110,7 @@ Es gibt eine vorgefertigte miele.html im Plugin-Ordner. Hier kann man die jeweil
 den eigenen Anforderungen anpassen und in den eigenen Seiten verwenden.
 
 ## known issues<a name="issues"/>
-###Trockner :
+### Trockner :
 Ein Trockner kann nur im Modus "SmartStart" gestartet werden.
 Es muss der SmartGrid-Modus aktiv sein und das Gerät auf "SmartStart" eingestellt werden.
 Der Trockner kann dann via API/Plugin gestartet werden bzw. es kann eine Startzeit via API/Plugin gesetzt werden  
