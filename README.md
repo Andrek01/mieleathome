@@ -13,7 +13,7 @@ aufgebaut.
 ## table of content
 
 1. [Change Log](#changelog)
-2. [Aktivierung des Zugriffs für 3rd pary-Apps](#activate)
+2. [Aktivierung des Zugriffs für 3rd party-Apps](#activate)
 3. [Einstellungen in der plugin.yaml](#plugin_yaml)
 4. [Ermittln der Device-ID´s](#device_id)
 5. [Items definieren](#create_items)
@@ -50,7 +50,7 @@ aufgebaut.
 - Verarbeitung von "ambientLight", "light", "ventilationStep", "colors"
 - Verarbeiten von "modes"
 
-## Aktivierung des Zugriffs für 3rd pary-Apps<a name="changelog"/>
+## Aktivierung des Zugriffs für 3rd party-Apps<a name="changelog"/>
  
 
 Eine App unter https://www.miele.com/f/com/en/register_api.aspx registrieren. Nach Erhalt der Freischalt-Mail die Seite aufrufen und das Client-Secret und die Client-ID kopieren und merken (speichern).
