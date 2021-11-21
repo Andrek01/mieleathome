@@ -28,6 +28,7 @@
 import datetime
 import time
 import os
+import json
 
 from lib.item import Items
 from lib.model.smartplugin import SmartPluginWebIf
@@ -89,15 +90,20 @@ class WebInterface(SmartPluginWebIf):
         if dataSet is None:
             # get the new data
             data = {}
+            data['Device']=self.plugin.last_event_device
+            data['Action']=self.plugin.last_event_action
+            data['last_Event']=self.plugin.last_event_time
+            data['last_Ping']=self.plugin.last_ping_time
+            
 
             # data['item'] = {}
             # for i in self.plugin.items:
             #     data['item'][i]['value'] = self.plugin.getitemvalue(i)
             #
-            # return it as json the the web page
-            # try:
-            #     return json.dumps(data)
-            # except Exception as e:
-            #     self.logger.error("get_data_html exception: {}".format(e))
-        return {}
+        # return it as json the the web page
+        try:
+            return json.dumps(data)
+        except Exception as e:
+            self.logger.error("get_data_html exception: {}".format(e))
+        
 

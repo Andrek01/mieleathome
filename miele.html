@@ -7,7 +7,7 @@
 * -----------------------------------------------------------------------------
 */
 
-{% extends "base.html" %}
+{% extends "rooms.html" %}
 
 {% import "lib.html" as lib %}
 {% import "basic.html" as basic %}
@@ -23,14 +23,70 @@
 {% import "weather.html" as weather %}
 {% import "quad.html" as quad %}
 
+
+
 {% block content %}
+<style>
+.ui-midi {
+  width:120px;
+}
+</style>
+    <div class="block" style=" min-height:20px">
+			<div class="set-2" data-role="collapsible-set" data-theme="c" data-content-theme="a" data-mini="true">
+				<div data-role="collapsible" data-collapsed="false" >
+					<h3>Miele Control Center (Dryer)</h3>
+				
+          <table width="100%">
+						<tbody>
+							<tr>
+								<td align="left">Gerätetyp:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.ident.device_type.value_localized', 'text') }}</td>
+							</tr><tr>
+								<td align="left">Typenbezeichnung:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.ident.deviceIdentLabel.techType','text') }}</td>
+							</tr><tr>
+								<td align="left">Materialnummer:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.ident.deviceIdentLabel.matNumber', 'text') }}</td>
+							</tr><tr>
+								<td align="left">fabNummer:</td>
+								<td align="right">{{ basic.print('Serial', 'MieleDevices.Dryer.ident.deviceIdentLabel.fabNumber', '') }}</td>
+							</tr><tr>
+								<td align="left">Gerätestatus:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.state.status.value_localized','') }}</td>
+							</tr><tr>
+								<td align="left">Programm:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.state.programType.value_localized', '') }}</td>
+							</tr><tr>
+								<td align="left">Trockenstufe:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.state.dryingStep.value_localized', '') }}</td>
+							</tr><tr>
+								<td align="left">Programm Phase:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.state.programPhase.value_localized', 'text') }}</td>
+							</tr><tr>
+								<td align="left">Energieverbrauch Forecast:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.state.ecoFeedback.energyForecast', 'text') }}
+								                  {{ basic.print('', 'MieleDevices.Dryer.state.ecoFeedback.currentEnergyConsumption.unit', 'text') }}
+								</td>
+							</tr><tr>
+								<td align="left">Gerätetür:</td>
+								<td align="right">{{basic.symbol('','MieleDevices.Dryer.state.signalDoor',['offen','geschlossen'],['fts_door_unlocked','fts_door_locked'],['1','0'],'',['red','green'],'','','','')}}</td>
+							</tr><tr>
+								<td align="left">verbleibende Zeit:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.visu.times.remainingTime', 'text') }}</td>
+							</tr>
+								<td align="left">verstrichene Zeit:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Dryer.visu.times.elapsedTime', 'text') }}</td>
+							</tr><tr>
+								<td align="left">Start-Zeit:</td>
+								<td align="right">{{ basic.input('', 'bath.time', 'time') }}</td>
+							</tr><tr>
+								<td align="left">End-Zeit:</td>
+								<td align="right">{{ basic.input('', 'bath.time', 'time') }}</td>
+							</tr>
+						</tbody>
+					</table>
 
-		<div>
-			<h3>Render-Result</h3>
-			<br>
-
-				Miele Control Center (Dryer):<br>
-				<table>
+				<table style="margin-left:auto; margin-right:auto;">
 				<tr>
 				<td>
 				{{ status.collapse('Control_1', 'MieleDevices.Dryer.visu.allowed_actions.start', 0) }}				
@@ -75,18 +131,64 @@
         </td><td>
 				{{ status.collapse('Control_9', 'MieleDevices.Dryer.visu.allowed_actions.powerOff', 0) }}				                        
 				<div class="hide" data-bind="Control_9">                          
-        {{basic.stateswitch('','MieleDevices.Dryer.visu.action_buttons.powerOn','midi',[0,1],'info_error','Power Off',['green','green'],'','','')}}
+        {{basic.stateswitch('','MieleDevices.Dryer.visu.action_buttons.powerOff','midi',[0,1],'info_error','Power Off',['green','green'],'','','')}}
         </div>          
         </td>
         </tr>
         </table>
+        {{ status.collapse('Dryer_device_failure', 'MieleDevices.Dryer.state.signalFailure') }}
+        <div class="hide" data-bind="Dryer_device_failure" style="color:red">
+            {{ basic.symbol('','','','info_warning','','','red','','','') }}
+            Fehler am Gerät
+				</div>
+        {{ status.collapse('Dryer_device_info', 'MieleDevices.Dryer.state.signalInfo') }}
+        <div class="hide" data-bind="Dryer_device_info" style="color:orange">
+            {{ basic.symbol('','','','info_attention','','','orange','','','') }}
+				    Info am Gerät
+				</div>        				        
+        
+ 			</div>
+		</div>
+    </div>
 
-        <br>
-        <br>
-        <br>        
-
-				Miele Control Center (Freezer):<br>
-				<table>
+    <div class="block" style=" min-height:20px">
+			<div class="set-2" data-role="collapsible-set" data-theme="c" data-content-theme="a" data-mini="true">
+				<div data-role="collapsible" data-collapsed="false" >
+					<h3>Miele Control Center (Freezer)</h3>
+          <table width="100%">
+						<tbody>
+							<tr>
+								<td align="left">Gerätetyp:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Freezer.ident.device_type.value_localized', 'text') }}</td>
+							</tr><tr>
+								<td align="left">Typenbezeichnung:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Freezer.ident.deviceIdentLabel.techType','text') }}</td>
+							</tr><tr>
+								<td align="left">Materialnummer:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Freezer.ident.deviceIdentLabel.matNumber', 'text') }}</td>
+							</tr><tr>
+								<td align="left">fabNummer:</td>
+								<td align="right">{{ basic.print('Serial', 'MieleDevices.Freezer.ident.deviceIdentLabel.fabNumber', '') }}</td>
+							</tr><tr>
+								<td align="left">Gerätestatus:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Freezer.state.status.value_localized','') }}</td>
+							</tr><tr>
+								<td align="left">Ist-Temperatur Zone 1:</td>
+								<td align="right">{{ basic.print('', 'MieleDevices.Freezer.visu.values.temperatur_zone_1.temperature', '°') }}</td>
+							</tr><tr>
+								<td align="left">Soll-Temperatur Zone 1:</td>
+								<td align="right">         {{  basic.select('','MieleDevices.Freezer.visu.values.temperatur_zone_1.target_temperature','','','','','','horizontal',
+         'MieleDevices.Freezer.values.temperatur_zone_1.range_index','MieleDevices.Freezer.values.temperatur_zone_1.range_description')  }}</td>
+							</tr><tr>
+								<td align="left">Gerätetür:</td>
+								<td align="right">{{basic.symbol('','MieleDevices.Freezer.state.signalDoor',['offen','geschlossen'],['fts_door_unlocked','fts_door_locked'],['1','0'],'',['red','green'],'','','','')}}</td>
+							</tr>
+							
+							
+							
+						</tbody>
+					</table>					
+				<table style="margin-left:auto; margin-right:auto;">
 				<tr>
 				<td>
 				{{ status.collapse('Control_Freezer_1', 'MieleDevices.Freezer.visu.allowed_actions.start', 0) }}				
@@ -106,22 +208,22 @@
         </td><td>
 				{{ status.collapse('Control_Freezer_4', 'MieleDevices.Freezer.visu.allowed_actions.start_supercooling', 0) }}				        
 				<div class="hide" data-bind="Control_Freezer_4">                
-          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.start_supercooling','midi',[0,1],'weather_snow','Cooling',['red','red'],'','','','')}}
+          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.start_supercooling','midi',[0,1],'weather_snow','Start Super Cooling',['red','red'],'','','','')}}
         </div>          
         </td><td>
 				{{ status.collapse('Control_Freezer_5', 'MieleDevices.Freezer.visu.allowed_actions.stop_supercooling', 0) }}				                
 				<div class="hide" data-bind="Control_Freezer_5">                          
-          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.stop_supercooling','midi',[0,1],'weather_snow','Cooling',['green','green'],'','','','')}}
+          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.stop_supercooling','midi',[0,1],'weather_snow','Stop Super Cooling',['green','green'],'','','','')}}
         </div>          
         </td><td>
 				{{ status.collapse('Control_Freezer_6', 'MieleDevices.Freezer.visu.allowed_actions.start_superfreezing', 0) }}				                        
 				<div class="hide" data-bind="Control_Freezer_6">                          
-          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.start_superfreezing','midi',[0,1],'weather_frost','Freezing',['red','red'],'','','','')}}
+          {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.start_superfreezing','midi',[0,1],'weather_frost','Start Super Freezing',['red','red'],'','','','')}}
         </div>          
         </td><td>
 				{{ status.collapse('Control_Freezer_7', 'MieleDevices.Freezer.visu.allowed_actions.stop_superfreezing', 0) }}				                        
 				<div class="hide" data-bind="Control_Freezer_7">                          
-        {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.stop_superfreezing','midi',[0,1],'weather_frost','Freezing',['green','green'],'','','','')}}
+        {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.stop_superfreezing','midi',[0,1],'weather_frost','Stop Super Freezing',['green','green'],'','','','')}}
         </div>          
         </td><td>
 				{{ status.collapse('Control_Freezer_8', 'MieleDevices.Freezer.visu.allowed_actions.powerOn', 0) }}				                        
@@ -131,13 +233,24 @@
         </td><td>
 				{{ status.collapse('Control_Freezer_9', 'MieleDevices.Freezer.visu.allowed_actions.powerOff', 0) }}				                        
 				<div class="hide" data-bind="Control_Freezer_9">                          
-        {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.powerOn','midi',[0,1],'info_error','Power Off',['green','green'],'','','')}}
+        {{basic.stateswitch('','MieleDevices.Freezer.visu.action_buttons.powerOff','midi',[0,1],'info_error','Power Off',['green','green'],'','','')}}
         </div>          
         </td>
         </tr>
         </table>
 
+        {{ status.collapse('Freezer_device_failure', 'MieleDevices.Freezer.state.signalFailure') }}
+        <div class="hide" data-bind="Freezer_device_failure" style="color:red">
+            {{ basic.symbol('','','','info_warning','','','red','','','') }}
+				    Fehler am Gerät
+				</div>
+        {{ status.collapse('Freezer_device_info', 'MieleDevices.Freezer.state.signalInfo') }}
+        <div class="hide" data-bind="Freezer_device_info" style="color:orange">
+            {{ basic.symbol('','','','info_attention','','','orange','','','') }}
+				    Info am Gerät
+				</div>        				        
 
+<!--
         <table style="width:250px">
         <tr>
         <td style="width:50%"> Zone 1 :</td>
@@ -155,68 +268,17 @@
 
         </tr>
         </table>          
-
-
-
+-->       
+ 			</div>
 		</div>
-
-		
- 
-		</div>
-        <div id="last_updated">
-   			<h3>Here you will see the last update time of the rendered widgets</h3>
-        </div>
-
-	
-    <script>
-    var lastTimeStamp = 0;
+    </div>
 
 
-    function CheckUpdate()
 
-    {
-	     $.ajax({
-		       url: "lib/widget_assistant/widget_assistant.php",
-		       method: "GET",
-		       dataType: "text",
-		       data: {
-			       		command : 'get_time_stamp'
-			       	 },
-		       success: function (result) {
-                   newTimeStamp = (parseInt(result))*1000
-     	           console.log("last timestamp :" + lastTimeStamp + ' - ' +  "new timestamp :" + newTimeStamp)
-                    if (lastTimeStamp == 0)
-                        {
-                         lastTimeStamp = newTimeStamp
-                         date_Obj = new Date(newTimeStamp)
-             	           console.log("got timestamp :" + newTimeStamp)
-                         newText = date_Obj.toString()
-              		       document.getElementById("last_updated").innerHTML = 'last updatet at :'+newText
-                        }
 
-                    if (newTimeStamp > lastTimeStamp)
-                        {
-                         lastTimeStamp = newTimeStamp
-                         location.reload(); 
-                         date_Obj = new Date(newTimeStamp)
-             	           console.log("got timestamp :" + newTimeStamp)
-                         newText = date_Obj.toGMTString()
-              		       document.getElementById("last_updated").innerHTML = 'last updatet at :'+newText
-                        }
-
-		       },
-		       error: function (result) {
-			       console.log("Error getting TimeStamp")
-		       }
-		     });
-
-    }
-
-    setInterval(CheckUpdate,1000)
-    </script>	
-	
 
 {% endblock %}
+
 
 
 

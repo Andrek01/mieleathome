@@ -130,6 +130,9 @@ item_structs:
                 value_localized:
                     type: str
                     cache: 'on'
+                value_raw:
+                    type: num
+                    cache: 'on'                
             programType:
                 value_localized:
                     type: str
@@ -147,7 +150,8 @@ item_structs:
             targetTemperature:
                 type: list
                 cache: 'on'          
-                miele_parse_item: true                
+                miele_parse_item: true
+                enforce_updates: yes
             temperature:
                 type: list
                 cache: 'on'          
@@ -214,6 +218,7 @@ item_structs:
                 type: list
                 cache: 'on'
                 miele_parse_item: true
+                enforce_updates: yes                
             startTime:
                 type: list
                 cache: 'on'
@@ -233,12 +238,22 @@ item_structs:
                     
         visu:
             times:
-                startTime:
+                scheduled_startTime:
+                    visu_acl: rw                
                     type: str
                     eval_trigger: ....state.startTime
                     eval: str("%0.2d"%sh.....state.startTime()[0])+":"+str("%0.2d"%sh.....state.startTime()[1])
-                stopTime:
+                    miele_parse_item: true                    
+                startTime:
+                    visu_acl: rw                
                     type: str
+                    init_value: "00:00"
+                    miele_parse_item: true                    
+                stopTime:
+                    visu_acl: rw                
+                    type: str
+                    init_value: "00:00"                    
+                    miele_parse_item: true                                        
                 elapsedTime:
                     type: str
                     eval_trigger: ....state.elapsedTime
@@ -358,44 +373,53 @@ item_structs:
                     visu_acl: rw
                     autotimer: 1 = False
                     miele_command: '{"processAction": 1}'
+                    enforce_updates: yes                    
                 stop:
                     type: bool
                     visu_acl: rw
                     autotimer: 1 = False
-                    miele_command: '{"processAction": 2}'                                      
+                    miele_command: '{"processAction": 2}'
+                    enforce_updates: yes                    
                 pause:
                     type: bool
                     visu_acl: rw                    
                     autotimer: 1 = False
                     miele_command: '{"processAction": 3}'
+                    enforce_updates: yes                    
                 start_superfreezing:
                     type: bool
                     visu_acl: rw                    
                     autotimer: 1 = False
                     miele_command: '{"processAction": 4}'
+                    enforce_updates: yes                    
                 stop_superfreezing:
                     type: bool
                     visu_acl: rw                    
                     autotimer: 1 = False
                     miele_command: '{"processAction": 5}'
+                    enforce_updates: yes                    
                 start_supercooling:
                     type: bool
                     visu_acl: rw                    
                     autotimer: 1 = False
                     miele_command: '{"processAction": 6}'
+                    enforce_updates: yes                    
                 stop_supercooling:
                     type: bool
                     visu_acl: rw                    
                     autotimer: 1 = False
-                    miele_command: '{"processAction": 7}'                                                           
+                    miele_command: '{"processAction": 7}'
+                    enforce_updates: yes                    
                 powerOn:
                     type: bool
                     visu_acl: rw
                     miele_command: '{"powerOn":true}'
+                    enforce_updates: yes                    
                 powerOff:
                     type: bool
                     visu_acl: rw
                     miele_command: '{"powerOff":true}'
+                    enforce_updates: yes                    
 
         values:
             temperatur_zone_1:

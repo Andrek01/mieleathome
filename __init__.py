@@ -37,8 +37,6 @@ import threading
 from datetime import datetime, timedelta
 
 import sys
-from twisted.python.runtime import seconds
-
 
 # If a needed package is imported, which might be not installed in the Python environment,
 # add it to a requirements.txt file within the plugin's directory
@@ -76,6 +74,10 @@ class mieleathome(SmartPlugin):
         self.miele_devices_by_item = {}
         self.miele_device_by_action = {}
         self.miele_parsed_item = {}
+        # dicts for Event-Stream based informations
+
+        
+        
         
         # Call init code of parent class (SmartPlugin)
         super().__init__()
@@ -96,13 +98,15 @@ class mieleathome(SmartPlugin):
         self.ValidFrom = ''                             #Time and date when (new) tokens were received
         self.ValidThrough = ''                          #Time and date when tokens will expire
         self.ValidFor = 0                               #Timeframe in days for validity of tokens
-        self.last_ping_time = ""                        #Time of last Ping from Event-Listener
+        self.last_ping_time = ''                        #Time of last Ping from Event-Listener
         self.last_ping_timestamp = datetime.now()       #Time of last Ping from Event-Listener
-        self.last_event_time  =""                       #Time of last Event from Event-Listener
+        self.last_event_time  =''                       #Time of last Event from Event-Listener
         self.last_event_action = {}                     #Last dict for event_action
         self.last_event_device = {}                     #Last dict for event_device
+        self.last_event_time = ''
+        self.last_ping_time = ''
         
-        self.Url='https://api.mcs3.miele.com'
+        self.Url='https://api.mcs3.miele.com/v1'
         self.event_server   = None
         self.auth           = self._auth()
 
@@ -152,12 +156,14 @@ class mieleathome(SmartPlugin):
         """
         Stop method for the plugin
         """
+        self.alive = False
         self.logger.debug("Stop method called")
         self.scheduler_remove('poll_device')
         self.scheduler_remove('_refreshToken')
+        self.event_server.alive = False
         self.event_server.stop()
-        self.event_server.join()
-        self.alive = False
+        #self.event_server.join()
+        
 
     
     def _getallDevices4Action(self):
@@ -183,7 +189,7 @@ class mieleathome(SmartPlugin):
                     "vg" :self.country
                     }
         
-        myResult = requests.post(self.Url+'/thirdparty/token/',data=payload,headers=myHeaders)
+        myResult = requests.post(self.Url[:-3]+'/thirdparty/token/',data=payload,headers=myHeaders)
         try:
             if (myResult.status_code == 200):
                 myRespPayload=json.loads(myResult.content.decode())
@@ -224,8 +230,6 @@ class mieleathome(SmartPlugin):
                 self.ValidFrom = time.ctime(time.time())                        #Time and date when (new) tokens were received
                 self.ValidThrough = time.ctime(time.time() + self.Expiration)   #Time and date when tokens will expire
                 self.scheduler_change('_refreshToken', cycle={myTokenRefresh:None}) # Zum Testen von 6 auf 10 Sekunden geändert
-                #self.scheduler_remove('_refreshToken')
-                #self.scheduler_add('_refreshToken',self._refreshToken,cycle = self.Expiration-100)
                 self.auth = True
         except:
             self.logger.warning("Error while refresh Token on {}".format(self.Url+'/thirdparty/token/'))
@@ -238,7 +242,7 @@ class mieleathome(SmartPlugin):
         for entry in myPayload:
             myItem = self.items.return_item(myItemParent+'.actions.'+entry)
             if myItem != None:
-                myItem(myPayload[entry])
+                myItem(myPayload[entry],self.get_shortname())
         myItem = self.items.return_item(myItemParent+'.actions.processAction')
         if myItem != None:
             myAllowedValues= myItem()
@@ -248,9 +252,9 @@ class mieleathome(SmartPlugin):
                 myItemName = myItemParent+'.visu.allowed_actions.'+myActions[i-1]
                 myItem = self.items.return_item(myItemName)
                 if i in myAllowedValues:
-                    myItem(True)
+                    myItem(True,self.get_shortname())
                 else:
-                    myItem(False)
+                    myItem(False,self.get_shortname())
         
         
     def _getalldevices(self):
@@ -258,7 +262,7 @@ class mieleathome(SmartPlugin):
                     "Authorization" : "Bearer {}".format(self.AccesToken)
                     }
         
-        myUrl = self.Url + "/v1/devices?language={}".format(self.country[0:2])
+        myUrl = self.Url + "/devices?language={}".format(self.country[0:2])
         myResult = requests.get(myUrl,headers=myHeaders, timeout=5.0)
         try:
             if (myResult.status_code == 200):
@@ -273,6 +277,8 @@ class mieleathome(SmartPlugin):
             self.logger.warning("Error while getting devices from {}".format(myUrl))
     
     def _parseAllDevices(self,myPayload):
+        '''
+        '''
         ''' 
         !!! Change "type" to "device_type" in payload - shNG does not allow Items with Name "type" because its an attribute 
         '''
@@ -324,7 +330,7 @@ class mieleathome(SmartPlugin):
                     "Authorization" : "Bearer {}".format(self.AccesToken)
                     }
         
-        myUrl = self.Url + "/v1/{}/actions".format(deviceId)
+        myUrl = self.Url + "/devices/{}/actions".format(deviceId)
         myResult = requests.get(myUrl,headers=myHeaders,timeout=5.0)
         try:
             if (myResult.status_code == 200):
@@ -341,7 +347,7 @@ class mieleathome(SmartPlugin):
                         }
             
             myUrl = self.Url + "/devices/{}/actions".format(deviceID)
-            myResult = requests.put(myUrl,headers=myHeaders,json=myPayload,timeout=5.0)
+            myResult = requests.put(myUrl,headers=myHeaders,json=myPayload,timeout=10.0)
         except Exception as err:
             self.logger.warning("Error while sending Command : {} to device {} using URL : {}- Error : {}".format(myPayload,deviceID,myUrl, err))
             pass
@@ -414,18 +420,21 @@ class mieleathome(SmartPlugin):
                 deviceId = self.miele_device_by_action[item.path()]
                 myPayload = json.loads(item.conf['miele_command'])
                 self.putCommand2Device(deviceId, myPayload)
+                myPayload = self._getActions4Device(deviceId)
+                self._parseAction4Device(myPayload, deviceId)
+                
             if self.has_iattr(item.conf, 'miele_command') and 'targetTemperature' in item.conf['miele_command']:
                 deviceId = self.miele_device_by_action[item.path()]
                 myPayload = item.conf['miele_command'].replace("%1",str(item()))
                 myPayload = json.loads(myPayload)
                 self.putCommand2Device(deviceId, myPayload)
-            pass
-        
+                self._getalldevices()
             
         
-        if self.alive and caller == self.get_shortname():
+            
+        # Function todo all the time when items are changed        
+        if self.alive :
             if self.has_iattr(item.conf, 'miele_parse_item'):
-                
                 self._getMainItem4parseItem()
                 myMainItem = self.miele_parsed_item[item.path()]
                 if 'targetTemperature' in item.path() and 'actions' in item.path():
@@ -486,8 +495,13 @@ class mieleathome(SmartPlugin):
         if self.auth == True:
             try:
                 self._getalldevices()
-            except:
-                self.logger.warning("mieleathome - error during _getalldevis in poll_device")
+                for device in self.miele_devices_by_deviceID:
+                    myPayload = self._getActions4Device(device)
+                    self._parseAction4Device(myPayload, device)
+                    
+                
+            except Exception as err:
+                self.logger.warning("mieleathome - error during _getalldevices in poll_device - {}".format(err))
                 pass
             if (self.last_ping_timestamp <  datetime.now() - timedelta(minutes=5)):
                 self.logger.warning("mieleathome - no ping since 5 minutes - retry to get new Event-Connection")
@@ -519,13 +533,12 @@ class miele_event(threading.Thread):
     def __init__(self, logger, url, access_token, mieleathome):
         threading.Thread.__init__(self)
         self.logger = logger
-        self.url  = url+ '/v1/devices/all/events'
+        self.url  = url+ '/devices/all/events'
         self.access_token = access_token
         self.request = None
         self.alive = False
         self.mieleathome = mieleathome
         self.last_event = ""
-    
     def run(self):
         
         self.alive = True
@@ -559,6 +572,12 @@ class miele_event(threading.Thread):
                 self.response = requests.get(self.url,headers=myHeaders, stream=True,timeout=10.0)
                 
                 for line in self.response.iter_lines():
+                    if (not self.alive):
+                        try:
+                            self.response.close()
+                        except:
+                            pass
+                        break
                     if line:
                         myPayload = line.decode()
                         
@@ -566,23 +585,26 @@ class miele_event(threading.Thread):
                             self.last_event = myPayload.split(":")[1].strip()
                             continue
                         elif 'ping' not in myPayload:
-                            myPayload=json.loads(myPayload.split(":")[1].strip())
+                            myPayload=json.loads(myPayload[6:].strip())
                             
                         if self.last_event == "ping":
                             self.last_event = ""
                             self.mieleathome.last_ping_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.mieleathome.last_ping_timestamp = datetime.now()
-                            self.logger.warning("mieleathome - got Ping-Event :")
                         elif self.last_event == "devices":
                             self.logger.warning("mieleathome - got devices-Event :" + json.dumps(myPayload))
                             self.last_event = ""
                             self.mieleathome.last_event_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.mieleathome._parseAllDevices(myPayload)
+                            if (myPayload != {}):
+                                self.mieleathome.last_event_device = myPayload
                         elif self.last_event == "actions":
                             self.logger.warning("mieleathome - got actions-Event :" + json.dumps(myPayload))
                             self.mieleathome.last_event_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.last_event = ""
                             self.mieleathome.last_event_time = time.ctime(time.time())
+                            if (myPayload != {}):
+                                self.mieleathome.last_event_action = myPayload
                             for device in myPayload:
                                 self.mieleathome._parseAction4Device(myPayload[device], device)
 
@@ -597,6 +619,5 @@ class miele_event(threading.Thread):
 
     def stop(self):
         self.logger.warning("mieleathome - stoping Event-Listener")
-        self.alive = False
         self.response.close()
         
