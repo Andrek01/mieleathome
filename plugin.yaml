@@ -257,12 +257,12 @@ item_structs:
                 startTime:
                     visu_acl: rw                
                     type: str
-                    init_value: "00:00"
+                    initial_value: "00:00:00"
                     miele_parse_item: true                    
                 stopTime:
                     visu_acl: rw                
                     type: str
-                    init_value: "00:00"                    
+                    initial_value: "00:00:00"                    
                     miele_parse_item: true                                        
                 elapsedTime:
                     type: str
