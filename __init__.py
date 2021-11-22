@@ -104,8 +104,6 @@ class mieleathome(SmartPlugin):
         self.last_event_time  =''                       #Time of last Event from Event-Listener
         self.last_event_action = {}                     #Last dict for event_action
         self.last_event_device = {}                     #Last dict for event_device
-        self.last_event_time = ''
-        self.last_ping_time = ''
         
         self.Url='https://api.mcs3.miele.com/v1'
         self.event_server   = None
@@ -268,9 +266,9 @@ class mieleathome(SmartPlugin):
         try:
             if (myResult.status_code == 200):
                 self.all_devices = json.loads(myResult.content.decode())
-                self.logger.warning("Got all devices from Miele-Cloud - start parsing to Items")
+                self.logger.debug("Got all devices from Miele-Cloud - start parsing to Items")
                 self._parseAllDevices(self.all_devices)
-                self.logger.warning("Got all devices from Miele-Cloud - stopped parsing to Items")
+                self.logger.debug("Got all devices from Miele-Cloud - stopped parsing to Items")
             else:
                 pass
         except Exception as err:
@@ -342,7 +340,7 @@ class mieleathome(SmartPlugin):
         try:
             if (myResult.status_code == 200):
                 myActions = json.loads(myResult.content.decode())
-                self.logger.warning("Got all actions from Miele-Cloud for {} - start parsing to Items".format(deviceId))
+                self.logger.debug("Got all actions from Miele-Cloud for {} - start parsing to Items".format(deviceId))
                 return myActions
         except Exception as err: 
             self.logger.warning("Error while getting Actions for Device :{}".format(deviceId))        
@@ -358,7 +356,7 @@ class mieleathome(SmartPlugin):
         except Exception as err:
             self.logger.warning("Error while sending Command : {} to device {} using URL : {}- Error : {}".format(myPayload,deviceID,myUrl, err))
             pass
-        self.logger.warning("Result : {} sending command : {} to device {} using URL : {}".format(myResult.status_code, myPayload,deviceID,myUrl))
+        self.logger.debug("Result : {} sending command : {} to device {} using URL : {}".format(myResult.status_code, myPayload,deviceID,myUrl))
         
             
     def parse_item(self, item):
@@ -427,7 +425,7 @@ class mieleathome(SmartPlugin):
             self.logger.info("Update item: {}, item has been changed inside this plugin".format(item.id()))
 
             if self.has_iattr(item.conf, 'foo_itemtag'):
-                self.logger.warning("update_item was called with item '{}' from caller '{}', source '{}' and dest '{}'".format(item,
+                self.logger.debug("update_item was called with item '{}' from caller '{}', source '{}' and dest '{}'".format(item,
                                                                                                                                caller, source, dest))
             if self.has_iattr(item.conf, 'miele_command') and item() == True:
                 deviceId = self.miele_device_by_action[item.path()]
@@ -517,7 +515,7 @@ class mieleathome(SmartPlugin):
                 self.logger.warning("mieleathome - error during _getalldevices in poll_device - {}".format(err))
                 pass
             if (self.last_ping_timestamp <  datetime.now() - timedelta(minutes=5)):
-                self.logger.warning("mieleathome - no ping since 5 minutes - retry to get new Event-Connection")
+                self.logger.debug("mieleathome - no ping since 5 minutes - retry to get new Event-Connection")
                 try:
                     self.event_server.reconnect()
                 except Exception as err:
@@ -555,12 +553,12 @@ class miele_event(threading.Thread):
     def run(self):
         
         self.alive = True
-        self.logger.warning("mieleathome - starting Event-Listener")
+        self.logger.debug("mieleathome - starting Event-Listener")
         self.connect()
         
                         
     def reconnect(self):
-        self.logger.warning("mieleathome - try to establish new Event-Connection")
+        self.logger.debug("mieleathome - try to establish new Event-Connection")
         try:
             self.response.close()
         except:
@@ -605,17 +603,16 @@ class miele_event(threading.Thread):
                             self.mieleathome.last_ping_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.mieleathome.last_ping_timestamp = datetime.now()
                         elif self.last_event == "devices":
-                            self.logger.warning("mieleathome - got devices-Event :" + json.dumps(myPayload))
+                            self.logger.debug("mieleathome - got devices-Event :" + json.dumps(myPayload))
                             self.last_event = ""
                             self.mieleathome.last_event_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.mieleathome._parseAllDevices(myPayload)
                             if (myPayload != {}):
                                 self.mieleathome.last_event_device = myPayload
                         elif self.last_event == "actions":
-                            self.logger.warning("mieleathome - got actions-Event :" + json.dumps(myPayload))
+                            self.logger.debug("mieleathome - got actions-Event :" + json.dumps(myPayload))
                             self.mieleathome.last_event_time = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
                             self.last_event = ""
-                            self.mieleathome.last_event_time = time.ctime(time.time())
                             if (myPayload != {}):
                                 self.mieleathome.last_event_action = myPayload
                             for device in myPayload:
@@ -631,6 +628,6 @@ class miele_event(threading.Thread):
         
 
     def stop(self):
-        self.logger.warning("mieleathome - stoping Event-Listener")
+        self.logger.debug("mieleathome - stoping Event-Listener")
         self.response.close()
         
