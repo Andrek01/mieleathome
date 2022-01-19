@@ -81,9 +81,11 @@ https://www.miele.com/developer/
 Zusätzlich zu seinen Miele Kontodaten braucht es weitere individuelle Zugriffsdaten, um die API nutzen zu können. Der direkte Link zur Registrierung für die API (Get Involved) ist: https://www.miele.com/f/com/en/register_api.aspx
 Für app name kann man sich etwas ausdenken, email address dürfte klar sein. Nach einem Klick auf REGISTER erhält man kurze Zeit später eine Client-ID und ein Client Secret, welche in etwa so aussehen:
 <br>
+
 >Client-ID: 487423d3-4f75-34b7-c5f2-1f1c0971d1e4<br>
 >
 >Client-Secret: rW6wRqk7SaF205IjIBMXIkqLnJdIwU5V<br>
+
 
 All diese Daten unbedingt merken.
 
