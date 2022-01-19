@@ -81,10 +81,10 @@ https://www.miele.com/developer/
 Zusätzlich zu seinen Miele Kontodaten braucht es weitere individuelle Zugriffsdaten, um die API nutzen zu können. Der direkte Link zur Registrierung für die API (Get Involved) ist: https://www.miele.com/f/com/en/register_api.aspx
 Für app name kann man sich etwas ausdenken, email address dürfte klar sein. Nach einem Klick auf REGISTER erhält man kurze Zeit später eine Client-ID und ein Client Secret, welche in etwa so aussehen:
 <br>
-<code>
-Client-ID: 487423d3-4f75-34b7-c5f2-1f1c0971d1e4<br>
-Client-Secret: rW6wRqk7SaF205IjIBMXIkqLnJdIwU5V<br>
-</code>
+>Client-ID: 487423d3-4f75-34b7-c5f2-1f1c0971d1e4<br>
+>
+>Client-Secret: rW6wRqk7SaF205IjIBMXIkqLnJdIwU5V<br>
+
 All diese Daten unbedingt merken.
 
 5. Einrichten des Plugins in SmartHomeNG
@@ -124,6 +124,7 @@ Miele_client_country sollte auf den Ländercode eingestellt werden, der die gew�
 </code>
 </pre>
 miele_client_id und miele_client_secret siehe Voraussetzungen Schritt 4.
+
 6. item-Definition  
 Der letzte Schritt in SmartHomeNG ist die Definition der Items. Die Hauptarbeit wurde bereits in der plugin.yaml im Verzeichnis des mieleathome Plugins erledigt. Alles was man braucht sind die Seriennummern der Geräte, auch fabNumber genannt. Diese erhält man u.a. über die Informationen zu den Geräten in der Miele-App, wie in Voraussetzungen Schritt 2 gezeigt, oder findet sie auf dem Typenschild. Das folgende Beispiel zeigt die komplette Item-Definition, die ich für meine drei Geräte erzeugen musste. Das ist fast nichts.
 <pre>
