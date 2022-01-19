@@ -69,7 +69,7 @@ Das Plugin hat noch Beta-Status, läuft aber inzwischen so gut, dass man es ruhi
 2. Leider lassen sich die Geräte nicht direkt und somit rein lokal einbinden, man ist auf die Miele Cloud angewiesen. Daher braucht man ein Konto bei Miele. Dies kann man z.B. mit Hilfe der Smartphone-/Tablet-App von Miele erledigen. Diese App ist gar nicht mal schlecht. Sie bietet sogar mehr Möglichkeiten als die aktuelle API Version. 
 ![img_10.png](./assets/img_10.png)
 
-3. Installation der App. Die App findet man hier Android: https://play.google.com/store/apps/details?id=de.miele.infocontrol&hl=de&gl=US iOS: https://apps.apple.com/de/app/miele-app-smart-home/id930406907]<br>Daher: Miele-App installieren, Konto erstellen, Geräte einbinden. Nach Miele Anleitung. Dann geht es weiter mit dem API-Zugriff.
+3. Installation der App. Die App findet man hier<br> Android: https://play.google.com/store/apps/details?id=de.miele.infocontrol&hl=de&gl=US<<br> iOS: https://apps.apple.com/de/app/miele-app-smart-home/id930406907]<br>Daher: Miele-App installieren, Konto erstellen, Geräte einbinden. Nach Miele Anleitung. Dann geht es weiter mit dem API-Zugriff.
 
 4. Als nächstes muss man sich Zugang zur Miele-API verschaffen. Man braucht hierfür seine in Schritt 2 erzeugten Kontodaten (Username ist eine E-Mail-Adresse). Unter folgendem Link findet man die Miele-API Beschreibung:
 https://www.miele.com/developer/
