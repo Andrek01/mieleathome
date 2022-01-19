@@ -70,11 +70,9 @@ Das Plugin hat noch Beta-Status, läuft aber inzwischen so gut, dass man es ruhi
 ![img_10.png](./assets/img_10.png)
 3. Die App findet man hier:
 <br>
-Android:  
-https://play.google.com/store/apps/details?id=de.miele.infocontrol&hl=de&gl=US
+Android: https://play.google.com/store/apps/details?id=de.miele.infocontrol&hl=de&gl=US
 <br>
-iOS:  
-https://apps.apple.com/de/app/miele-app-smart-home/id930406907]
+iOS: https://apps.apple.com/de/app/miele-app-smart-home/id930406907]
 <br>
 Die App unterstützt einen auch recht gut bei der Grundinstallation der Geräte für den WLAN-Zugriff und der Registrierung für die Miele Cloud. Sobald die Geräte in der Miele-App auftauchen, abgefragt und bedient werden können, stehen sie auch in der Miele-API zur Verfügung.
 Daher: Miele-App installieren, Konto erstellen, Geräte einbinden. Nach Miele Anleitung. Dann geht es weiter mit dem API-Zugriff.
