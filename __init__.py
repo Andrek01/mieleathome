@@ -48,7 +48,7 @@ class mieleathome(SmartPlugin):
     the update functions for the items
     """
 
-    PLUGIN_VERSION = '1.0.0'    # (must match the version specified in plugin.yaml), use '1.0.0' for your initial plugin Release
+    PLUGIN_VERSION = '1.0.1'    # (must match the version specified in plugin.yaml), use '1.0.0' for your initial plugin Release
 
     def __init__(self, sh):
         """
