@@ -107,7 +107,7 @@ class mieleathome(SmartPlugin):
         
         self.Url='https://api.mcs3.miele.com/v1'
         self.event_server   = None
-        self.auth           = self._auth()
+        self.auth           = self._auth_oauth()
 
         # Initialization code goes here
 
@@ -136,7 +136,7 @@ class mieleathome(SmartPlugin):
             self._getallDevices4Action()
             self._getMainItem4parseItem()
 
-        self.event_server = miele_event(self.logger, self.Url, self.AccessToken, self)
+        self.event_server = miele_event(self.logger, self.Url, self.AccessToken, self,self.country)
         self.event_server.name = "mieleEventListener"
         self.event_server.start()
         self.scheduler_add('poll_device', self.poll_device, cycle=self._cycle)
@@ -145,7 +145,7 @@ class mieleathome(SmartPlugin):
         # They will not shutdown properly. (It's a python bug)
         
         myTokenRefresh = (self.Expiration-100)
-        self.scheduler_add('_refreshToken',self._refreshToken,cycle = myTokenRefresh)
+        self.scheduler_add('_refreshToken_oauth',self._refreshToken_oauth,cycle = myTokenRefresh)
         for device in self.miele_devices_by_deviceID:
             myPayload = self._getActions4Device(device)
             self._parseAction4Device(myPayload, device)
@@ -158,10 +158,10 @@ class mieleathome(SmartPlugin):
         self.alive = False
         self.logger.debug("Stop method called")
         self.scheduler_remove('poll_device')
-        self.scheduler_remove('_refreshToken')
+        self.scheduler_remove('_refreshToken_oauth')
         self.event_server.alive = False
         self.event_server.stop()
-        #self.event_server.join()
+
         
 
     
@@ -177,6 +177,81 @@ class mieleathome(SmartPlugin):
                 if Device in ItemName:
                     self.miele_parsed_item[ItemName] = Device
                                                 
+    def _auth_oauth(self):
+        mySession =requests.session()
+        try:
+            myHeader = {
+                'Host': 'api.mcs3.miele.com',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0',
+                'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language' : 'de,en-US;q=0.7,en;q=0.3',
+                'Accept-Encoding' : 'gzip, deflate, br, zstd',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest' : 'document',
+                'Sec-Fetch-Mode' : 'navigate',
+                'Sec-Fetch-Site' : 'none',
+                'Sec-Fetch-User' : '?1',
+                'Priority' : 'u=0, i',
+                'TE' : 'trailers'
+            }
+
+            myParams = {
+                        'client_id' : self.client_id,
+                        'response_type' : 'code',
+                        'redirect_uri' : 'https://google.com'
+                        }
+            myUrl = 'https://api.mcs3.miele.com/thirdparty/login'
+            myResponse = mySession.get(myUrl,headers=myHeader,params=myParams,allow_redirects=True)
+            myUrl = 'https://api.mcs3.miele.com/oauth/auth'
+
+            myHeader['Referer'] = 'https://api.mcs3.miele.com/thirdparty/login?client_id={}&response_type=code&redirect_uri=https%3A%2F%2Fgoogle.com'.format(self.client_id)
+            myHeader['Referer'] = myResponse.url
+            myHeader['Origin'] = 'https://api.mcs3.miele.com'
+            myHeader['Content-Type'] = 'application/x-www-form-urlencoded'
+
+            myParams = {
+                        'email' : self.user,
+                        'password' : self.pwd,
+                        'response_type' : 'code',
+                        'redirect_uri' : 'https://google.com',
+                        'client_id' : self.client_id,
+                        'vgInformationSelector' : self.country
+                        }
+
+            myResponse = mySession.post(myUrl,headers=myHeader,params=myParams,allow_redirects=False)
+            myCode = myResponse.headers['Location'].split(("code="))[1].split("&")[0]
+            myParams = {"client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "code": myCode,
+                "grant_type": "authorization_code",
+                'redirect_uri' : 'https://google.com'
+                }
+
+            myHeader = headers={
+                  "Content-Type": "application/x-www-form-urlencoded"
+                }
+            myUrl = 'https://api.mcs3.miele.com/thirdparty/token'
+
+            myResponse = mySession.post(myUrl,headers=myHeader,params=myParams)
+            myContent  = myResponse.content.decode()
+            myRespPayload = json.loads(myContent)
+            self.AccessToken   = myRespPayload['access_token']
+            self.RefreshToken = myRespPayload['refresh_token']
+            self.Expiration = myRespPayload['expires_in']
+            self.ValidFor = int(self.Expiration / 86400)                    #Timeframe in days for validity of tokens
+            self.ValidFrom = time.ctime(time.time())                        #Time and date when (new) tokens were received
+            self.ValidThrough = time.ctime(time.time() + self.Expiration)   #Time and date when tokens will expire
+            mySession.close()
+            return True
+        except:
+            self.logger.warning("Error while authentication on {}".format('https://api.mcs3.miele.com/thirdparty/token'))
+            mySession.close()
+        return False
+
+
+
+
     def _auth(self):
         myHeaders = { "accept" : "application/json" }
         
@@ -203,7 +278,39 @@ class mieleathome(SmartPlugin):
             self.logger.warning("Error while authentication on {}".format(self.Url+'/thirdparty/token/'))
         
         return False
-    
+
+    def _refreshToken_oauth(self):
+        myHeader = {
+        "Authorization": "Bearer " + self.AccessToken,
+        "Content-Type": "application/x-www-form-urlencoded"
+            }
+        data={
+              "client_id": self.client_id,
+              "client_secret": self.client_secret,
+              "refresh_token": self.RefreshToken,
+              "grant_type": "refresh_token"
+            }
+        myUrl = 'https://api.mcs3.miele.com/thirdparty/token'
+        myResponse = requests.post(myUrl,headers=myHeader,data=data)
+        myContent  = myResponse.content.decode()
+        try:
+            if (myResponse.status_code == 200):
+                myRespPayload=json.loads(myResponse.content.decode())
+                self.AccessToken   = myRespPayload['access_token']
+                self.event_server.access_token = self.AccessToken
+                self.RefreshToken = myRespPayload['refresh_token']
+                self.Expiration = myRespPayload['expires_in']
+                myTokenRefresh = (self.Expiration-100)
+                self.ValidFor = int(self.Expiration / 86400)                    #Timeframe in days for validity of tokens
+                self.ValidFrom = time.ctime(time.time())                        #Time and date when (new) tokens were received
+                self.ValidThrough = time.ctime(time.time() + self.Expiration)   #Time and date when tokens will expire
+                self.scheduler_change('_refreshToken_oauth', cycle={myTokenRefresh:None}) # Zum Testen von 6 auf 10 Sekunden geändert
+                self.auth = True
+
+        except:
+            self.logger.warning("Error while refresh Token on {}".format('https://api.mcs3.miele.com/thirdparty/token'))
+            self.auth = False
+
     def _refreshToken(self):
         myHeaders = {
                 "Authorization" : "Bearer {}".format(self.AccessToken),
@@ -230,6 +337,7 @@ class mieleathome(SmartPlugin):
                 self.ValidThrough = time.ctime(time.time() + self.Expiration)   #Time and date when tokens will expire
                 self.scheduler_change('_refreshToken', cycle={myTokenRefresh:None}) # Zum Testen von 6 auf 10 Sekunden geändert
                 self.auth = True
+
         except:
             self.logger.warning("Error while refresh Token on {}".format(self.Url+'/thirdparty/token/'))
             self.auth = False                    
@@ -276,23 +384,24 @@ class mieleathome(SmartPlugin):
             self.logger.warning("Error while getting devices from {}".format(myUrl))
     
     def _parseAllDevices(self,myPayload):
-        '''
-        '''
-        ''' 
-        !!! Change "type" to "device_type" in payload - shNG does not allow Items with Name "type" because its an attribute 
-        '''
         myDummy = json.dumps(myPayload)
         myDummy = myDummy.replace('"type"','"device_type"')
         myPayload = json.loads(myDummy)
         self.miele_devices_raw = []
         for myDevice in myPayload:
-            self._parseDict2Item(myPayload[myDevice],self.miele_devices_by_deviceID[myDevice])
-            myObj = {}
-            myObj['DeviceID']           = myDevice
-            myObj['DeviceTyp']          = myPayload[myDevice]['ident']['device_type']['value_localized']
-            myObj['DeviceModel']        = myPayload[myDevice]['ident']['deviceIdentLabel']['techType']
+            try:
+                if (myDevice in self.miele_devices_by_deviceID):
+                    self._parseDict2Item(myPayload[myDevice],self.miele_devices_by_deviceID[myDevice])
+                    myObj = {}
+                    myObj['DeviceID']           = myDevice
+                    myObj['DeviceTyp']          = myPayload[myDevice]['ident']['device_type']['value_localized']
+                    myObj['DeviceModel']        = myPayload[myDevice]['ident']['deviceIdentLabel']['techType']
+                    
+                    self.miele_devices_raw.append(myObj)
+            except Exception as err:
+                self.logger.warning("Error while Updating Device :{}".format(myDevice))
+                pass
             
-            self.miele_devices_raw.append(myObj)
     
     def _parseDict2Item(self, my_dict,my_item_path):
         for entry in my_dict:
@@ -541,7 +650,7 @@ class mieleathome(SmartPlugin):
 
 
 class miele_event(threading.Thread):
-    def __init__(self, logger, url, access_token, mieleathome):
+    def __init__(self, logger, url, access_token, mieleathome, country):
         threading.Thread.__init__(self)
         self.logger = logger
         self.url  = url+ '/devices/all/events'
@@ -550,6 +659,7 @@ class miele_event(threading.Thread):
         self.alive = False
         self.mieleathome = mieleathome
         self.last_event = ""
+        self.country = country
     def run(self):
         
         self.alive = True
@@ -576,11 +686,10 @@ class miele_event(threading.Thread):
             try:
                 myHeaders = {
                      "Authorization" : "Bearer {}".format(self.access_token),
-                     "Accept": "text/event-stream",
-                     "Accept-Language" : "de-DE",
-                     "Connection": "Keep-Alive"
+                     "Accept-Language" : self.country[0:2]
+
                     }
-                self.response = requests.get(self.url,headers=myHeaders, stream=True,timeout=10.0)
+                self.response = requests.get(self.url,headers=myHeaders, stream=True,timeout=30.0)
                 
                 for line in self.response.iter_lines():
                     if (not self.alive):
@@ -630,4 +739,3 @@ class miele_event(threading.Thread):
     def stop(self):
         self.logger.debug("mieleathome - stoping Event-Listener")
         self.response.close()
-        
